@@ -1,90 +1,135 @@
-
 using System;
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 
-namespace KAutoSave
+public class PersistentData : EditorWindow
 {
-    public class PersistentData : EditorWindow
+    private static bool _autoSaveEnabled = false;
+    private static bool _autoRecoverEnabled = false;
+    private static DateTime _lastSavedTime;
+    private static int _autoSaveFrequency = 1; // minutes
+    private static int _autoRecoverFrequency = 10; // minutes
+    private static void SetValue(string _key, string _value)
     {
-        private static bool _enabled = false;
-        private static DateTime _lastSavedTime;
-        private static int _autoSaveFrequency = 1; // minutes
-        private static void SetVariable(string _Name, string _Value)
-        {
-            EditorPrefs.SetString(_Name, _Value);
-        }
+        EditorPrefs.SetString(_key, _value);
+    }
         
-        private static string GetVariable(string _key)
-        {
-            if (EditorPrefs.HasKey(_key))
-                return EditorPrefs.GetString(_key);
+    private static string GetValue(string _key)
+    {
+        if (EditorPrefs.HasKey(_key))
+            return EditorPrefs.GetString(_key);
 
-            return "";
-        }
+        return "";
+    }
         
-        public static float EditorTimeInSeconds {
-            get { return (float)(EditorApplication.timeSinceStartup % 1000000); }
-        }
+    public static float EditorTimeInSeconds {
+        get { return (float)(EditorApplication.timeSinceStartup % 1000000); }
+    }
 
-        public static bool Enabled
+    public static bool AutoSaveEnabled
+    {
+        get
         {
-            get
+            bool isEnabled;
+            string strEnabled = GetValue("AutoSaveEnabled");
+            if (bool.TryParse(strEnabled, out isEnabled))
             {
-                bool isEnabled;
-                string strEnabled = GetVariable("Enabled");
-                if (bool.TryParse(strEnabled, out isEnabled))
-                {
-                    return isEnabled;
-                }
-                return true; 
+                return isEnabled;
+            }
+            return true; 
                 
-            }
-            set
-            {
-                _enabled = (bool)value;
-                SetVariable("Enabled", _enabled.ToString());
-            }
         }
-
-        public static DateTime LastSavedTime
+        set
         {
-            get
+            _autoSaveEnabled = (bool)value;
+            SetValue("AutoSaveEnabled", _autoSaveEnabled.ToString());
+            AutoSave.IsAutoSaveEnabled = value;
+        }
+    }
+
+    public static DateTime LastSavedTime
+    {
+        get
+        {
+            DateTime tempLastSavedTime;
+            string strLastSavedTime= GetValue("LastSavedTime");
+            if (strLastSavedTime.Length > 0)
             {
-                DateTime tempLastSavedTime;
-                string strLastSavedTime= GetVariable("LastSavedTime");
                 if (DateTime.TryParse(strLastSavedTime, out tempLastSavedTime))
                 {
                     return tempLastSavedTime;
                 }
-                return DateTime.Now;
             }
-            set
-            {
-                _lastSavedTime = value;
-                SetVariable("LastSavedTime", _lastSavedTime.ToShortTimeString());
-            }
+
+            return DateTime.Now;
         }
-
-        public static int AutoSaveFrequency
+        set
         {
-            get
-            {
-                int tempAutoSaveFrequency;
-                string strAutoSaveFrequency = GetVariable("AutoSaveFrequency");
-                if (int.TryParse(strAutoSaveFrequency, out tempAutoSaveFrequency))
-                {
-                    return tempAutoSaveFrequency;
-                }
+            _lastSavedTime = value;
+            SetValue("LastSavedTime", _lastSavedTime.ToLongTimeString());
+        }
+    }
 
-                return 1;
-
-            }
-            set
+    public static int AutoSaveFrequency
+    {
+        get
+        {
+            int tempAutoSaveFrequency;
+            string strAutoSaveFrequency = GetValue("AutoSaveFrequency");
+            if (int.TryParse(strAutoSaveFrequency, out tempAutoSaveFrequency))
             {
-                _autoSaveFrequency = value ;
-                SetVariable("AutoSaveFrequency", _autoSaveFrequency.ToString());
+                return tempAutoSaveFrequency;
             }
+
+            return 1;
+
+        }
+        set
+        {
+            _autoSaveFrequency = value ;
+            SetValue("AutoSaveFrequency", _autoSaveFrequency.ToString());
+        }
+    }
+
+    public static int AutoRecoverFrequency
+    {
+        get
+        {
+            int tempAutoRecoverFrequency;
+            string strAutoRecoverFrequency = GetValue("AutoRecoverFrequency");
+            if (int.TryParse(strAutoRecoverFrequency, out tempAutoRecoverFrequency))
+            {
+                return tempAutoRecoverFrequency;
+            }
+
+            return 1;
+
+        }
+        set
+        {
+            _autoRecoverFrequency = value ;
+            SetValue("AutoRecoverFrequency", _autoRecoverFrequency.ToString());
+        }
+    }
+
+    public static bool AutoRecoverEnabled
+    {
+        get
+        {
+            bool isEnabled;
+            string strEnabled = GetValue("AutoRecoverEnabled");
+            if (bool.TryParse(strEnabled, out isEnabled))
+            {
+                return isEnabled;
+            }
+            return true; 
+                
+        }
+        set
+        {
+            _autoRecoverEnabled = (bool)value;
+            SetValue("AutoRecoverEnabled", _autoRecoverEnabled.ToString());
+            AutoSave.IsAutoSaveEnabled = value;
         }
     }
 }

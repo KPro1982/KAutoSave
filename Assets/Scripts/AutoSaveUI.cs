@@ -1,0 +1,37 @@
+using System;
+using UnityEditor;
+using UnityEditor.PackageManager.UI;
+using UnityEngine;
+
+public class AutoSaveUI : EditorWindow
+{
+
+    [MenuItem("Window/AutoSave")]
+    static void Init()
+    {
+        // Get existing open window or if none, make a new one:
+        PersistentData.LastSavedTime = DateTime.Now;
+        Type inspectorType = Type.GetType("UnityEditor.InspectorWindow,UnityEditor.dll");
+        EditorWindow window =
+            GetWindow<AutoSaveUI>("AutoSave", new Type[] {inspectorType});
+        window.Show();
+    }
+
+    void OnGUI()
+    {
+        GUILayout.Space(5);
+        GUILayout.Label($"AutoSave", EditorStyles.boldLabel);
+
+
+        PersistentData.AutoSaveEnabled = EditorGUILayout.Toggle("Enable Timed Saves", PersistentData.AutoSaveEnabled);
+        PersistentData.AutoSaveFrequency =
+            (int)EditorGUILayout.Slider("AutoSave (minutes):", PersistentData.AutoSaveFrequency, 1, 30);
+        GUILayout.Label($"Last Saved: {PersistentData.LastSavedTime}");
+        
+        GUILayout.Space(20);
+        GUILayout.Label($"AutoRecover", EditorStyles.boldLabel);
+        PersistentData.AutoRecoverEnabled = EditorGUILayout.Toggle("Enable AutoRecover", PersistentData.AutoRecoverEnabled);
+        PersistentData.AutoRecoverFrequency =
+            (int)EditorGUILayout.Slider("AutoRecover (minutes):", PersistentData.AutoRecoverFrequency, 1, 60);
+    }
+}
