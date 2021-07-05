@@ -9,7 +9,6 @@ public class AutoSaveUI : EditorWindow
     static void Init()
     {
         // Get existing open window or if none, make a new one:
-        /*PersistentData.LastSavedTime = DateTime.Now;*/
         Type inspectorType = Type.GetType("UnityEditor.InspectorWindow,UnityEditor.dll");
         EditorWindow window =
             GetWindow<AutoSaveUI>("AutoSave", new Type[] {inspectorType});

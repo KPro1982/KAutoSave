@@ -18,15 +18,7 @@ public class AutoSave : EditorWindow
         EditorApplication.playModeStateChanged += HandlePlayModeState;
         IsAutoSaveEnabled = PersistentData.AutoSaveEnabled;
         IsAutoRecoverEnabled = PersistentData.AutoRecoverEnabled;
-        if (IsAutoSaveEnabled)
-        {
-            SaveAll();
-        }
 
-        if (IsAutoRecoverEnabled)
-        {
-            SaveAutoRecover();
-        }
     }
 
     public static bool IsAutoSaveEnabled
@@ -46,7 +38,7 @@ public class AutoSave : EditorWindow
     {
         if (IsAutoSaveEnabled)
         {
-            if (CheckLastSaveTime(PersistentData.AutoSaveFrequency))
+            if (CheckLastSaveTime(PersistentData.AutoSaveFrequency*60))
             {
                 SaveAll();
             }
@@ -54,7 +46,7 @@ public class AutoSave : EditorWindow
 
         if (IsAutoRecoverEnabled)
         {
-            if (CheckLastAutoRecoverTime(PersistentData.AutoRecoverFrequency))
+            if (CheckLastAutoRecoverTime(PersistentData.AutoRecoverFrequency*60))
             {
                 SaveAutoRecover();
             }
@@ -93,7 +85,7 @@ public class AutoSave : EditorWindow
     {
         DateTime currentTime = DateTime.Now;
         DateTime lastSaved;
-        if (PersistentData.TryGetLastSavedTime(out lastSaved))
+        if (!PersistentData.TryGetLastSavedTime(out lastSaved))
         {
             return true;
         }
@@ -128,9 +120,18 @@ public class AutoSave : EditorWindow
 
     private static void SaveAll()
     {
-        EditorApplication.ExecuteMenuItem("File/Save Project");
-        EditorApplication.ExecuteMenuItem("File/Save");
-        PersistentData.LastSavedTime = DateTime.Now;
+
+        if ((float) (EditorApplication.timeSinceStartup % 1000000) > 30)
+        {
+            EditorApplication.ExecuteMenuItem("File/Save Project");
+            EditorApplication.ExecuteMenuItem("File/Save");
+            Debug.Log("Saved!");
+            PersistentData.LastSavedTime = DateTime.Now;
+        }
+        else
+        {
+            Debug.Log("Skipping initial save on application open.");
+        }
     }
 
     static void SaveAutoRecover()
@@ -147,5 +148,6 @@ public class AutoSave : EditorWindow
 
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene(), savePath, true);
         PersistentData.LastAutoRecoverTime = DateTime.Now;
+        Debug.Log("AutoRecover!");
     }
 }
