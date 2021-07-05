@@ -17,6 +17,15 @@ public class AutoSave : EditorWindow
         EditorApplication.playModeStateChanged += HandlePlayModeState;
         IsAutoSaveEnabled = PersistentData.AutoSaveEnabled;
         IsAutoRecoverEnabled = PersistentData.AutoRecoverEnabled;
+        if (IsAutoSaveEnabled)
+        {
+            SaveAll();
+        }
+
+        if (IsAutoRecoverEnabled)
+        {
+            SaveAutoRecover();
+        }
 
 
     }
@@ -57,7 +66,7 @@ public class AutoSave : EditorWindow
 
     static void HandleProjectChanged()
     {
-        SaveAfter(PersistentData.AutoSaveFrequency*60);
+        SaveAfter(60);
     }
         
 
@@ -65,13 +74,12 @@ public class AutoSave : EditorWindow
     {
         if (state == PlayModeStateChange.ExitingEditMode)
         {
-            SaveAfter(PersistentData.AutoSaveFrequency*60);
+            SaveAfter(60);
         }
     }
 
     private static void TimedSave()
     {
-        Debug.Log("Timed Saved!!!");
         SaveAll();
     }
     public static void SaveAfter(int seconds)
@@ -90,7 +98,6 @@ public class AutoSave : EditorWindow
         TimeSpan elapsedTime = currentTime.Subtract(lastSaved);
         if (elapsedTime.TotalSeconds >= seconds)
         {
-            Debug.Log($"Time since last successful check: {elapsedTime.TotalSeconds}");
             return true;
         }
 
@@ -100,14 +107,10 @@ public class AutoSave : EditorWindow
     private static void SaveAll()
     {
         PersistentData.LastSavedTime = DateTime.Now;
-        // EditorSceneManager.MarkAllScenesDirty();
-        /*EditorSceneManager.SaveOpenScenes();*/
         EditorApplication.ExecuteMenuItem("File/Save Project");
-        Debug.Log("File/Save Executed");
         EditorApplication.ExecuteMenuItem("File/Save");
-        Debug.Log("File/Project Save Executed");
 
-   
+
     }
     
     static void SaveAutoRecover() {
@@ -121,7 +124,9 @@ public class AutoSave : EditorWindow
                           DateTime.Now.ToString("yyyy_MM_dd_HH_mm") + ".unity";
         
         EditorSceneManager.SaveScene( EditorSceneManager.GetActiveScene() , savePath , true );
-        Debug.Log( "AutoRecover version saved!");
+        PersistentData.LastAutoRecoverTime = DateTime.Now;
+        
+
     }
         
 

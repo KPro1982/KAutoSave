@@ -5,12 +5,11 @@ using UnityEngine;
 
 public class AutoSaveUI : EditorWindow
 {
-
     [MenuItem("Window/AutoSave")]
     static void Init()
     {
         // Get existing open window or if none, make a new one:
-        PersistentData.LastSavedTime = DateTime.Now;
+        /*PersistentData.LastSavedTime = DateTime.Now;*/
         Type inspectorType = Type.GetType("UnityEditor.InspectorWindow,UnityEditor.dll");
         EditorWindow window =
             GetWindow<AutoSaveUI>("AutoSave", new Type[] {inspectorType});
@@ -20,18 +19,21 @@ public class AutoSaveUI : EditorWindow
     void OnGUI()
     {
         GUILayout.Space(5);
-        GUILayout.Label($"AutoSave", EditorStyles.boldLabel);
+        // GUILayout.Label($"AutoSave", EditorStyles.boldLabel);
 
-
-        PersistentData.AutoSaveEnabled = EditorGUILayout.Toggle("Enable Timed Saves", PersistentData.AutoSaveEnabled);
+        PersistentData.AutoSaveEnabled = EditorGUILayout.BeginToggleGroup ("AutoSave", PersistentData.AutoSaveEnabled);
         PersistentData.AutoSaveFrequency =
             (int)EditorGUILayout.Slider("AutoSave (minutes):", PersistentData.AutoSaveFrequency, 1, 30);
-        GUILayout.Label($"Last Saved: {PersistentData.LastSavedTime}");
+        GUILayout.Label($"Last Saved: {PersistentData.GetLastSaveTimeStr()}");
+        EditorGUILayout.EndToggleGroup();
         
         GUILayout.Space(20);
-        GUILayout.Label($"AutoRecover", EditorStyles.boldLabel);
-        PersistentData.AutoRecoverEnabled = EditorGUILayout.Toggle("Enable AutoRecover", PersistentData.AutoRecoverEnabled);
+        // GUILayout.Label($"AutoRecover", EditorStyles.boldLabel);
+        
+        PersistentData.AutoRecoverEnabled = EditorGUILayout.BeginToggleGroup ("AutoRecover", PersistentData.AutoRecoverEnabled);
         PersistentData.AutoRecoverFrequency =
             (int)EditorGUILayout.Slider("AutoRecover (minutes):", PersistentData.AutoRecoverFrequency, 1, 60);
+        GUILayout.Label($"Last AutoRecover: {PersistentData.LastAutoRecoverTime}");
+        EditorGUILayout.EndToggleGroup();
     }
 }

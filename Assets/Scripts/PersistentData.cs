@@ -7,6 +7,7 @@ public class PersistentData : EditorWindow
     private static bool _autoSaveEnabled = false;
     private static bool _autoRecoverEnabled = false;
     private static DateTime _lastSavedTime;
+    private static DateTime _lastAutoRecoverTime;
     private static int _autoSaveFrequency = 1; // minutes
     private static int _autoRecoverFrequency = 10; // minutes
     private static void SetValue(string _key, string _value)
@@ -52,7 +53,7 @@ public class PersistentData : EditorWindow
         get
         {
             DateTime tempLastSavedTime;
-            string strLastSavedTime= GetValue("LastSavedTime");
+            string strLastSavedTime = GetValue("LastSavedTime");
             if (strLastSavedTime.Length > 0)
             {
                 if (DateTime.TryParse(strLastSavedTime, out tempLastSavedTime))
@@ -70,6 +71,21 @@ public class PersistentData : EditorWindow
         }
     }
 
+    public static string GetLastSaveTimeStr()
+    {
+        DateTime tempLastSavedTime;
+        string strLastSavedTime= GetValue("LastSavedTime");
+        if (strLastSavedTime.Length > 0)
+        {
+            if (DateTime.TryParse(strLastSavedTime, out tempLastSavedTime))
+            {
+                return tempLastSavedTime.ToString();
+            }
+        }
+
+        return "";
+    }
+    
     public static int AutoSaveFrequency
     {
         get
@@ -130,6 +146,30 @@ public class PersistentData : EditorWindow
             _autoRecoverEnabled = (bool)value;
             SetValue("AutoRecoverEnabled", _autoRecoverEnabled.ToString());
             AutoSave.IsAutoSaveEnabled = value;
+        }
+    }
+
+    public static DateTime LastAutoRecoverTime
+    {
+        get
+        {
+            DateTime tempLastAutoRecoverTime;
+            string strLastAutoRecoverTime= GetValue("LastAutoRecoverTime");
+            if (strLastAutoRecoverTime.Length > 0)
+            {
+                if (DateTime.TryParse(strLastAutoRecoverTime, out tempLastAutoRecoverTime))
+                {
+                    return tempLastAutoRecoverTime;
+                }
+                
+            }
+
+            return DateTime.Now;
+        }
+        set
+        {
+            _lastAutoRecoverTime = value;
+            SetValue("LastAutoRecoverTime", _lastAutoRecoverTime.ToLongTimeString());
         }
     }
 }
