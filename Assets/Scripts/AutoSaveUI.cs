@@ -33,7 +33,19 @@ public class AutoSaveUI : EditorWindow
         PersistentData.AutoRecoverEnabled = EditorGUILayout.BeginToggleGroup ("AutoRecover", PersistentData.AutoRecoverEnabled);
         PersistentData.AutoRecoverFrequency =
             (int)EditorGUILayout.Slider("AutoRecover (minutes):", PersistentData.AutoRecoverFrequency, 1, 60);
-        GUILayout.Label($"Last AutoRecover: {PersistentData.LastAutoRecoverTime}");
+        
+        string strLastAuto = "";
+        DateTime _LastAuto;
+        if (PersistentData.TryGetLastAutoRecoverTime(out _LastAuto))
+        {
+            strLastAuto = _LastAuto.ToString();
+        }
+        else
+        {
+            strLastAuto = "";
+        }
+        
+        GUILayout.Label($"Last AutoRecover: {strLastAuto}");
         EditorGUILayout.EndToggleGroup();
     }
 }

@@ -10,6 +10,7 @@ public class AutoSave : EditorWindow
 {
     private static bool _isAutoSaveEnabled = false;
     private static bool _isAutoRecoverEnabled = false;
+
     static AutoSave()
     {
         EditorApplication.update += HandleUpdate;
@@ -26,8 +27,6 @@ public class AutoSave : EditorWindow
         {
             SaveAutoRecover();
         }
-
-
     }
 
     public static bool IsAutoSaveEnabled
@@ -47,7 +46,7 @@ public class AutoSave : EditorWindow
     {
         if (IsAutoSaveEnabled)
         {
-            if (CheckTime(PersistentData.AutoSaveFrequency))
+            if (CheckLastSaveTime(PersistentData.AutoSaveFrequency))
             {
                 SaveAll();
             }
@@ -55,7 +54,7 @@ public class AutoSave : EditorWindow
 
         if (IsAutoRecoverEnabled)
         {
-            if (CheckTime(PersistentData.AutoRecoverFrequency))
+            if (CheckLastAutoRecoverTime(PersistentData.AutoRecoverFrequency))
             {
                 SaveAutoRecover();
             }
@@ -63,12 +62,11 @@ public class AutoSave : EditorWindow
     }
 
 
-
     static void HandleProjectChanged()
     {
         SaveAfter(60);
     }
-        
+
 
     private static void HandlePlayModeState(PlayModeStateChange state)
     {
@@ -82,19 +80,43 @@ public class AutoSave : EditorWindow
     {
         SaveAll();
     }
+
     public static void SaveAfter(int seconds)
     {
-        if (CheckTime(seconds))
+        if (CheckLastSaveTime(seconds))
         {
             SaveAll();
-
         }
     }
 
-    private static bool CheckTime(int seconds)
+    private static bool CheckLastSaveTime(int seconds)
     {
         DateTime currentTime = DateTime.Now;
-        DateTime lastSaved = PersistentData.LastSavedTime;
+        DateTime lastSaved;
+        if (PersistentData.TryGetLastSavedTime(out lastSaved))
+        {
+            return true;
+        }
+
+
+        TimeSpan elapsedTime = currentTime.Subtract(lastSaved);
+        if (elapsedTime.TotalSeconds >= seconds)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool CheckLastAutoRecoverTime(int seconds)
+    {
+        DateTime currentTime = DateTime.Now;
+        DateTime lastSaved;
+        if (!PersistentData.TryGetLastSavedTime(out lastSaved))
+        {
+            return true;
+        }
+
         TimeSpan elapsedTime = currentTime.Subtract(lastSaved);
         if (elapsedTime.TotalSeconds >= seconds)
         {
@@ -106,28 +128,24 @@ public class AutoSave : EditorWindow
 
     private static void SaveAll()
     {
-        PersistentData.LastSavedTime = DateTime.Now;
         EditorApplication.ExecuteMenuItem("File/Save Project");
         EditorApplication.ExecuteMenuItem("File/Save");
-
-
+        PersistentData.LastSavedTime = DateTime.Now;
     }
-    
-    static void SaveAutoRecover() {
-        if ( !System.IO.Directory.Exists( Application.dataPath + "/" + "AutoRecover" ) ) {
-            System.IO.Directory.CreateDirectory( Application.dataPath + "/" + "AutoRecover"  );
+
+    static void SaveAutoRecover()
+    {
+        if (!System.IO.Directory.Exists(Application.dataPath + "/" + "AutoRecover"))
+        {
+            System.IO.Directory.CreateDirectory(Application.dataPath + "/" + "AutoRecover");
             AssetDatabase.Refresh();
         }
 
         string sceneName = EditorSceneManager.GetActiveScene().name;
         string savePath = Application.dataPath + "/" + "AutoRecover/" + sceneName + "_" +
                           DateTime.Now.ToString("yyyy_MM_dd_HH_mm") + ".unity";
-        
-        EditorSceneManager.SaveScene( EditorSceneManager.GetActiveScene() , savePath , true );
+
+        EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene(), savePath, true);
         PersistentData.LastAutoRecoverTime = DateTime.Now;
-        
-
     }
-        
-
 }
